@@ -1,1 +1,1 @@
-# Computer-Architecture-Project-1-Multi-Cycle-CPU-Design
+# Computer-Architecture-Project-2-Multi-Cycle-CPU-Design
