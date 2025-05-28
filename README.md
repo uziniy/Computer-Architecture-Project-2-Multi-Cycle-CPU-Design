@@ -1,69 +1,41 @@
-# MCPU Control Signals Reference
+# 📘 MCPU Control Signal Design
 
-This document provides a summary of control signals used in the design of a multi-cycle MIPS-compatible processor (MCPU). These signals are essential for orchestrating the datapath elements during each cycle of instruction execution.
-
----
-
-## Memory Control
-
-| Signal     | Description                          | Values               |
-|------------|--------------------------------------|----------------------|
-| `IorD`     | Selects memory access target         | 0: Instruction, 1: Data |
-| `MemRead`  | Memory read enable                   | 0: Disable, 1: Enable |
-| `MemWrite` | Memory write enable                  | 0: Disable, 1: Enable |
-| `DatWidth` | Data width for memory access         | 000: Word (32-bit), 010: Halfword, 011: Byte, 110: Signed Halfword, 111: Signed Byte |
+**프로젝트 개요**  
+본 프로젝트는 MU0 ISA 기반의 MCPU를 Verilog로 구현하고, 이를 위한 제어 신호(Control Signals)를 정의한 것입니다. 메모리 접근, 레지스터 조작, ALU 제어, 분기 및 점프, FSM 상태 전이 등 다양한 기능에 필요한 제어 신호의 구체적인 정의와 역할을 문서화하여 설계 및 테스트에 활용하였습니다.
 
 ---
 
-## Instruction Register & Register File Control
+## ✅ 핵심 제어 신호 요약
 
-| Signal       | Description                               | Values                                  |
-|--------------|-------------------------------------------|-----------------------------------------|
-| `IRwrite`    | Instruction register write enable         | 0: Disable, 1: Enable                   |
-| `RegDst`     | Selects destination register              | 00: $rt, 01: $rd, 02: $rs, 03: $31      |
-| `RegDatSel`  | Data source for register write            | 000: ALUOut, 001: MDR, 010: LO, 011: HI, 100: PC |
-| `RegWrite`   | Enables register file write               | 0: Disable, 1: Enable                   |
+### 📂 Memory Control
+- **IorD** : 0 = 명령어 접근, 1 = 데이터 접근  
+- **MemRead / MemWrite** : 메모리 읽기 / 쓰기 활성화  
+- **DatWidth** : 데이터 크기 선택 (단어/하프/바이트/부호 포함)  
 
----
+### 🧾 Instruction & Register Control
+- **IRWrite** : 명령어 레지스터(IR) 기록 허용  
+- **RegDst** : 목적 레지스터 선택 (rt/rd/rs/31)  
+- **RegDatSel** : 레지스터에 기록할 데이터 원천 선택 (ALU 결과, 메모리, PC 등)  
+- **RegWrite** : 레지스터 파일 기록 여부  
 
-## Immediate Extension
+### 🔢 Immediate 확장
+- **EXTmode** : 부호 확장(1) 또는 0 확장(0)  
 
-| Signal     | Description                          | Values           |
-|------------|--------------------------------------|------------------|
-| `EXTmode`  | Immediate value extension mode       | 0: Zero-extend, 1: Sign-extend |
+### 🧮 ALU Control
+- **ALUsrcA / ALUsrcB** : ALU 입력 A, B 선택  
+- **ALUop** : 연산 종류 정의 (AND, ADD, MUL, SRA 등)  
+- **ALUctrl** : ALU 제어 보조 신호 (오퍼랜드 스왑, 시프트 위치)  
 
----
+### 🔁 Branch / Jump 제어
+- **Branch** : 분기 조건 (BEQ, BNE, 조건 분기 등)  
+- **PCsrc** : 다음 PC 갱신 값 선택  
+- **PCwrite** : PC 기록 여부  
 
-## ALU Control
-
-| Signal     | Description                          | Values           |
-|------------|--------------------------------------|------------------|
-| `ALUsrcA`  | ALU input A selection                | 000: RegA, 001: 0x4, 011: PC, 100: MDR |
-| `ALUsrcB`  | ALU input B selection                | 000: RegB, 001: 0x4, 011: SEU, 100: SEU << 2 |
-| `ALUop`    | ALU operation code                   | e.g., 00000: AND, 00100: ADD, 01001: MUL, 01111: SRA, 10001: SLTU |
-| `ALUctrl`  | Extra control bits                   | [1]=swap operands, [0]=shift src: 0=shamt, 1=$rs |
-
----
-
-## Branch & Jump Control
-
-| Signal   | Description                          | Values                   |
-|----------|--------------------------------------|--------------------------|
-| `Branch` | Conditional branch control           | 000: No branch, 100: BEQ, 101: BNE, 010~111: Conditional branches |
-| `PCsrc`  | Source for PC update                 | 00: ALU, 01: ALUOut, 10: Jump Addr, 11: Current PC |
-| `PCwrite`| Program Counter write enable         | 0: Disable, 1: Enable    |
+### 🧠 FSM 상태 전이
+- **StateSel** : FSM 다음 상태 제어  
+  - 00: 초기화, 01: 명령어 기반, 11: 다음 상태 자동 이동  
 
 ---
 
-## Control State Machine
-
-| Signal     | Description                          | Values           |
-|------------|--------------------------------------|------------------|
-| `StateSel` | Next state selection in FSM          | 00: Reset, 01: Instr-decided, 11: State + 1 |
-> Note: 8 bits before `StateSel` are reserved and must be set to `xxxxxxxx`.
-
----
-
-## Usage Note
-
-This control signal reference is designed to assist in both designing and debugging the MCPU’s control logic (e.g., PLA or FSM based controllers). It maps out how each instruction or memory interaction should manipulate the datapath.
+## 🧑‍💻 활용 방식
+이 제어 신호 정의는 PLA 기반 컨트롤러 구현이나 FSM 설계 시 각 명령어 단계별로 어떤 제어 신호가 필요한지를 명확하게 도식화하기 위한 기준 자료로 사용됩니다. 설계의 정확성과 일관성을 유지하는 데 핵심적인 역할을 합니다.
